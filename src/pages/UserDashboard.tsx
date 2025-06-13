@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Package,
@@ -10,87 +10,64 @@ import {
   AlertCircle,
   Eye,
 } from "lucide-react";
-import { useAppSelector } from "@hooks";
+import { useAppDispatch, useAppSelector } from "@hooks";
+import { getAllShipmentsAction } from "@redux-actions";
+import { useSnackbarContext } from "@providers";
+import { TrackingStatus } from "@typings/enums";
+import { getOverallStatusColor, getStatusIcon } from "@utils";
+
+type Shipment = {
+  id: number;
+  recipient: string;
+  address: string;
+  status: TrackingStatus;
+  createdAt: string;
+  weight: number;
+  type: string;
+};
 
 export const UserDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<TrackingStatus | "all">(
+    "all"
+  );
+  const [fetchedShipments, setFetchedShipments] = useState<Shipment[]>([]);
 
-  const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const snackbar = useSnackbarContext();
 
-  // Mock shipments data
-  const mockShipments = [
-    {
-      id: "HL001234",
-      recipient: "Alice Johnson",
-      address: "123 Main St, New York, NY",
-      status: "delivered",
-      createdAt: "2024-01-15",
-      estimatedDelivery: "2024-01-17",
-      weight: "2.5 kg",
-      type: "Standard",
-    },
-    {
-      id: "HL001235",
-      recipient: "Bob Smith",
-      address: "456 Oak Ave, Los Angeles, CA",
-      status: "in_transit",
-      createdAt: "2024-01-16",
-      estimatedDelivery: "2024-01-18",
-      weight: "1.2 kg",
-      type: "Express",
-    },
-    {
-      id: "HL001236",
-      recipient: "Carol Wilson",
-      address: "789 Pine St, Chicago, IL",
-      status: "pending",
-      createdAt: "2024-01-17",
-      estimatedDelivery: "2024-01-19",
-      weight: "3.1 kg",
-      type: "Standard",
-    },
-    {
-      id: "HL001237",
-      recipient: "David Brown",
-      address: "321 Elm St, Houston, TX",
-      status: "processing",
-      createdAt: "2024-01-17",
-      estimatedDelivery: "2024-01-20",
-      weight: "0.8 kg",
-      type: "Express",
-    },
-  ];
+  const { allShipmentsLoading } = useAppSelector((state) => state.shipment);
+  const { user, token } = useAppSelector((state) => state.auth);
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "delivered":
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case "in_transit":
-        return <Truck className="h-5 w-5 text-blue-600" />;
-      case "processing":
-        return <Clock className="h-5 w-5 text-yellow-600" />;
-      default:
-        return <AlertCircle className="h-5 w-5 text-gray-600" />;
+  const fetchShipments = async () => {
+    try {
+      const shipments = await dispatch(getAllShipmentsAction()).unwrap();
+      setFetchedShipments(
+        shipments.map((shipment) => ({
+          id: shipment.id,
+          recipient: shipment.recipientName,
+          address: shipment.recipientAddress,
+          status: shipment.currentStatus,
+          createdAt: new Date(shipment.createdAt).toLocaleDateString(),
+          weight: shipment.weight,
+          type: shipment.paymentStatus ? "Paid" : "Cash on Delivery",
+        }))
+      );
+    } catch (error: string | any) {
+      snackbar.showSnackbar(error || "Failed to fetch shipment data.", "error");
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "delivered":
-        return "bg-green-100 text-green-800";
-      case "in_transit":
-        return "bg-blue-100 text-blue-800";
-      case "processing":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  useEffect(() => {
+    if (user && token) fetchShipments();
+  }, [user, token]);
 
-  const filteredShipments = mockShipments.filter((shipment) => {
+  const filteredShipments = fetchedShipments.filter((shipment) => {
     const matchesSearch =
-      shipment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shipment.id
+        .toString()
+        .padStart(6, "0")
+        .includes(searchTerm.toLowerCase()) ||
       shipment.recipient.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || shipment.status === statusFilter;
@@ -98,11 +75,18 @@ export const UserDashboard: React.FC = () => {
   });
 
   const stats = {
-    total: mockShipments.length,
-    delivered: mockShipments.filter((s) => s.status === "delivered").length,
-    inTransit: mockShipments.filter((s) => s.status === "in_transit").length,
-    pending: mockShipments.filter(
-      (s) => s.status === "pending" || s.status === "processing"
+    total: fetchedShipments.length,
+    delivered: fetchedShipments.filter(
+      (s) => s.status === TrackingStatus.DELIVERED
+    ).length,
+    inTransit: fetchedShipments.filter(
+      (s) =>
+        s.status === TrackingStatus.IN_TRANSIT ||
+        s.status === TrackingStatus.OUT_FOR_DELIVERY ||
+        s.status === TrackingStatus.PICKED_UP
+    ).length,
+    pending: fetchedShipments.filter(
+      (s) => s.status === TrackingStatus.PENDING_PICKUP
     ).length,
   };
 
@@ -222,14 +206,21 @@ export const UserDashboard: React.FC = () => {
 
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) =>
+                    setStatusFilter(e.target.value as TrackingStatus | "all")
+                  }
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="in_transit">In Transit</option>
-                  <option value="delivered">Delivered</option>
+                  <option value={TrackingStatus.PENDING_PICKUP}>Pending</option>
+                  <option value={TrackingStatus.PICKED_UP}>Picked up</option>
+                  <option value={TrackingStatus.IN_TRANSIT}>In Transit</option>
+                  <option value={TrackingStatus.OUT_FOR_DELIVERY}>
+                    Out for Delivery
+                  </option>
+                  <option value={TrackingStatus.DELIVERED}>Delivered</option>
+                  <option value={TrackingStatus.CANCELLED}>Cancelled</option>
+                  <option value={TrackingStatus.RETURNED}>Returned</option>
                 </select>
               </div>
             </div>
@@ -267,7 +258,7 @@ export const UserDashboard: React.FC = () => {
                   <tr key={shipment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {shipment.id}
+                        {shipment.id.toString().padStart(6, "0")}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -282,9 +273,9 @@ export const UserDashboard: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {getStatusIcon(shipment.status)}
+                        {getStatusIcon(shipment.status, true)}
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getStatusColor(
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getOverallStatusColor(
                             shipment.status
                           )}`}
                         >
@@ -303,12 +294,14 @@ export const UserDashboard: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {shipment.createdAt}
+                        {new Date(shipment.createdAt).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
-                        to={`/shipment/track/${shipment.id}`}
+                        to={`/shipment/track/${shipment.id
+                          .toString()
+                          .padStart(6, "0")}`}
                         className="text-blue-600 hover:text-blue-900 transition-colors"
                       >
                         <Eye className="h-4 w-4" />
@@ -320,10 +313,16 @@ export const UserDashboard: React.FC = () => {
             </table>
           </div>
 
-          {filteredShipments.length === 0 && (
+          {!allShipmentsLoading && filteredShipments.length === 0 && (
             <div className="text-center py-12">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">No shipments found</p>
+            </div>
+          )}
+          {allShipmentsLoading && (
+            <div className="text-center py-12">
+              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-500">Loading shipments...</p>
             </div>
           )}
         </div>

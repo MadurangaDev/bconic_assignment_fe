@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { loginAction, registerAction } from "@redux-actions";
 import { ILoginResponse, IRegisterResponse } from "@responses";
+import { axiosInstance } from "@utils";
 
 interface IAuthSlice {
   token: string | null;
@@ -45,7 +46,7 @@ const slice = createSlice({
       state.registerResponse = null;
 
       localStorage.removeItem("user");
-      delete axios.defaults.headers.common["Authorization"];
+      delete axiosInstance.defaults.headers.common["Authorization"];
     },
   },
   extraReducers(builder) {

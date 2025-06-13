@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Search,
   Package,
@@ -11,16 +11,14 @@ import {
   User,
   Receipt,
 } from "lucide-react";
+import { CircularProgress } from "@mui/material";
 
 import { useSnackbarContext } from "@providers";
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { getShipmentHistoryAction } from "@redux-actions";
-import {
-  IHistoryRecord,
-  IShipmentHistoryResponse,
-} from "@typings/interfaces/responses";
-import { TrackingStatus } from "@typings/enums";
-import { CircularProgress } from "@mui/material";
+import { IHistoryRecord, IShipmentHistoryResponse } from "@responses";
+import { TrackingStatus } from "@enums";
+import { getOverallStatusColor, getStatusIcon } from "@utils";
 
 export const ShipmentTracking: FC = () => {
   const [shipmentId, setShipmentId] = useState("");
@@ -32,9 +30,7 @@ export const ShipmentTracking: FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { trackingLoading, trackingResponse } = useAppSelector(
-    (state) => state.shipment
-  );
+  const { trackingLoading } = useAppSelector((state) => state.shipment);
 
   const handleSearch = async (id: string) => {
     const searchingId = id || shipmentId;
@@ -82,36 +78,6 @@ export const ShipmentTracking: FC = () => {
       handleSearch(idProp);
     }
   }, [idProp]);
-
-  const getStatusIcon = (status: string, completed: boolean) => {
-    if (!completed) {
-      return <div className="w-4 h-4 border-2 border-gray-300 rounded-full" />;
-    }
-
-    switch (status.toLowerCase()) {
-      case "delivered":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "out for delivery":
-        return <Truck className="h-4 w-4 text-blue-600" />;
-      case "in transit":
-        return <Package className="h-4 w-4 text-blue-600" />;
-      default:
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-    }
-  };
-
-  const getOverallStatusColor = (status: TrackingStatus) => {
-    switch (status) {
-      case TrackingStatus.DELIVERED:
-        return "bg-green-100 text-green-800 border-green-200";
-      case TrackingStatus.IN_TRANSIT:
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case TrackingStatus.PENDING_PICKUP:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 pb-24">
@@ -266,6 +232,9 @@ export const ShipmentTracking: FC = () => {
                       <p>
                         <strong>Phone:</strong> {trackingData.senderPhone}
                       </p>
+                      <p>
+                        <strong>Address:</strong> {trackingData.senderAddress}
+                      </p>
                     </div>
                   </div>
 
@@ -282,7 +251,8 @@ export const ShipmentTracking: FC = () => {
                         <strong>Phone:</strong> {trackingData.recipientPhone}
                       </p>
                       <p>
-                        <strong>Email:</strong> {trackingData.recipientEmail}
+                        <strong>Email:</strong>{" "}
+                        {trackingData.recipientEmail ?? "N/A"}
                       </p>
                       <p>
                         <strong>Address:</strong>{" "}

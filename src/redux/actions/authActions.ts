@@ -4,12 +4,13 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { LOGIN_ENDPOINT, REGISTER_ENDPOINT } from "@configs";
 import { ILoginRequest, IRegisterRequest } from "@requests";
 import { baseResponse, ILoginResponse, IRegisterResponse } from "@responses";
+import { axiosInstance } from "@utils";
 
 export const loginAction = createAsyncThunk(
   "auth/login",
   async (loginData: ILoginRequest, { rejectWithValue }) => {
     try {
-      const response = await axios.post<baseResponse<ILoginResponse>>(
+      const response = await axiosInstance.post<baseResponse<ILoginResponse>>(
         LOGIN_ENDPOINT,
         loginData
       );
@@ -17,7 +18,7 @@ export const loginAction = createAsyncThunk(
         if (loginData.rememberMe) {
           localStorage.setItem("user", JSON.stringify(response.data.body));
         }
-        axios.defaults.headers.common[
+        axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${response.data.body.token}`;
 
@@ -39,13 +40,12 @@ export const registerAction = createAsyncThunk(
   "auth/register",
   async (registerData: IRegisterRequest, { rejectWithValue }) => {
     try {
-      const response = await axios.post<baseResponse<IRegisterResponse>>(
-        REGISTER_ENDPOINT,
-        registerData
-      );
+      const response = await axiosInstance.post<
+        baseResponse<IRegisterResponse>
+      >(REGISTER_ENDPOINT, registerData);
       if (response.data.body) {
         localStorage.setItem("user", JSON.stringify(response.data.body));
-        axios.defaults.headers.common[
+        axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${response.data.body.token}`;
         return response.data.body;
