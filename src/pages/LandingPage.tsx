@@ -1,29 +1,32 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Package, Truck, MapPin, Clock, Shield, Users } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Truck, MapPin, Clock, Shield } from "lucide-react";
 
-const LandingPage: React.FC = () => {
+import { Layout } from "@layouts";
+
+export const LandingPage: React.FC = () => {
   const features = [
     {
       icon: <Truck className="h-8 w-8 text-blue-600" />,
-      title: 'Fast Delivery',
-      description: 'Express delivery within 24 hours across the city'
+      title: "Fast Delivery",
+      description: "Express delivery within 24 hours across the city",
     },
     {
       icon: <MapPin className="h-8 w-8 text-blue-600" />,
-      title: 'Real-time Tracking',
-      description: 'Track your packages in real-time with precise location updates'
+      title: "Real-time Tracking",
+      description:
+        "Track your packages in real-time with precise location updates",
     },
     {
       icon: <Shield className="h-8 w-8 text-blue-600" />,
-      title: 'Secure Handling',
-      description: 'Your packages are handled with utmost care and security'
+      title: "Secure Handling",
+      description: "Your packages are handled with utmost care and security",
     },
     {
       icon: <Clock className="h-8 w-8 text-blue-600" />,
-      title: '24/7 Support',
-      description: 'Round-the-clock customer support for all your needs'
-    }
+      title: "24/7 Support",
+      description: "Round-the-clock customer support for all your needs",
+    },
   ];
 
   return (
@@ -37,18 +40,18 @@ const LandingPage: React.FC = () => {
               <span className="block text-orange-400">Courier Service</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-              Fast, reliable, and secure package delivery service. 
-              Send your packages with confidence and track them every step of the way.
+              Fast, reliable, and secure package delivery service. Send your
+              packages with confidence and track them every step of the way.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                to="/register"
+                to="/auth/login"
                 className="bg-orange-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-600 transition-colors shadow-lg"
               >
                 Get Started
               </Link>
               <Link
-                to="/track"
+                to="/shipment/track"
                 className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors"
               >
                 Track Package
@@ -66,10 +69,11 @@ const LandingPage: React.FC = () => {
               Why Choose Half Life Courier?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              We provide exceptional courier services with cutting-edge technology and unmatched reliability.
+              We provide exceptional courier services with cutting-edge
+              technology and unmatched reliability.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="text-center group">
@@ -79,9 +83,7 @@ const LandingPage: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600">
-                  {feature.description}
-                </p>
+                <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -93,11 +95,15 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">10,000+</div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                10,000+
+              </div>
               <div className="text-gray-600">Packages Delivered</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">5,000+</div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                5,000+
+              </div>
               <div className="text-gray-600">Happy Customers</div>
             </div>
             <div>
@@ -115,10 +121,11 @@ const LandingPage: React.FC = () => {
             Ready to Send Your First Package?
           </h2>
           <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who trust Half Life Courier for their delivery needs.
+            Join thousands of satisfied customers who trust Half Life Courier
+            for their delivery needs.
           </p>
           <Link
-            to="/register"
+            to="/auth/login"
             className="bg-orange-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-600 transition-colors shadow-lg inline-block"
           >
             Create Account Now
@@ -128,5 +135,3 @@ const LandingPage: React.FC = () => {
     </div>
   );
 };
-
-export default LandingPage;

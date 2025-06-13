@@ -1,49 +1,64 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Package, User, MapPin, Phone, Mail, Weight, Truck, Calendar, ArrowRight, CheckCircle } from 'lucide-react';
+import React, { FC, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Package,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  Weight,
+  Truck,
+  Calendar,
+  ArrowRight,
+  CheckCircle,
+} from "lucide-react";
 
-const ShipmentCreation: React.FC = () => {
+export const ShipmentCreation: FC = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Recipient details
-    recipientName: '',
-    recipientEmail: '',
-    recipientPhone: '',
-    recipientAddress: '',
-    recipientCity: '',
-    recipientPostalCode: '',
-    
+    recipientName: "",
+    recipientEmail: "",
+    recipientPhone: "",
+    recipientAddress: "",
+    recipientCity: "",
+    recipientPostalCode: "",
+
     // Shipment details
-    packageDescription: '',
-    weight: '',
-    dimensions: '',
-    deliveryType: 'standard',
-    specialInstructions: '',
-    
+    packageDescription: "",
+    weight: "",
+    dimensions: "",
+    deliveryType: "standard",
+    specialInstructions: "",
+
     // Sender details (pre-filled from user data)
-    senderName: '',
-    senderEmail: '',
-    senderPhone: '',
-    senderAddress: ''
+    senderName: "",
+    senderEmail: "",
+    senderPhone: "",
+    senderAddress: "",
   });
 
-  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
 
   React.useEffect(() => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       senderName: `${userData.firstName} ${userData.lastName}`,
       senderEmail: userData.email,
-      senderPhone: userData.phone || '',
-      senderAddress: userData.address || ''
+      senderPhone: userData.phone || "",
+      senderAddress: userData.address || "",
     }));
   }, [userData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -58,24 +73,37 @@ const ShipmentCreation: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Mock submission - generate tracking ID
-    const trackingId = 'HL' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    localStorage.setItem('lastTrackingId', trackingId);
-    navigate('/dashboard');
+    const trackingId =
+      "HL" + Math.random().toString(36).substr(2, 6).toUpperCase();
+    localStorage.setItem("lastTrackingId", trackingId);
+    navigate("/dashboard");
   };
 
   const steps = [
-    { number: 1, title: 'Recipient Info', icon: <User className="h-5 w-5" /> },
-    { number: 2, title: 'Shipment Details', icon: <Package className="h-5 w-5" /> },
-    { number: 3, title: 'Review & Confirm', icon: <CheckCircle className="h-5 w-5" /> }
+    { number: 1, title: "Recipient Info", icon: <User className="h-5 w-5" /> },
+    {
+      number: 2,
+      title: "Shipment Details",
+      icon: <Package className="h-5 w-5" />,
+    },
+    {
+      number: 3,
+      title: "Review & Confirm",
+      icon: <CheckCircle className="h-5 w-5" />,
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-12 pb-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Create New Shipment</h1>
-          <p className="text-gray-600 mt-2">Fill in the details to create a new shipment</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Create New Shipment
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Fill in the details to create a new shipment
+          </p>
         </div>
 
         {/* Progress Steps */}
@@ -83,20 +111,36 @@ const ShipmentCreation: React.FC = () => {
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  currentStep >= step.number ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {currentStep > step.number ? <CheckCircle className="h-5 w-5" /> : step.icon}
+                <div
+                  className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                    currentStep >= step.number
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  {currentStep > step.number ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    step.icon
+                  )}
                 </div>
                 <div className="ml-3">
-                  <p className={`text-sm font-medium ${
-                    currentStep >= step.number ? 'text-blue-600' : 'text-gray-500'
-                  }`}>
+                  <p
+                    className={`text-sm font-medium ${
+                      currentStep >= step.number
+                        ? "text-blue-600"
+                        : "text-gray-500"
+                    }`}
+                  >
                     Step {step.number}
                   </p>
-                  <p className={`text-xs ${
-                    currentStep >= step.number ? 'text-blue-600' : 'text-gray-500'
-                  }`}>
+                  <p
+                    className={`text-xs ${
+                      currentStep >= step.number
+                        ? "text-blue-600"
+                        : "text-gray-500"
+                    }`}
+                  >
                     {step.title}
                   </p>
                 </div>
@@ -118,7 +162,7 @@ const ShipmentCreation: React.FC = () => {
                   <User className="h-6 w-6 mr-2 text-blue-600" />
                   Recipient Information
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -245,7 +289,7 @@ const ShipmentCreation: React.FC = () => {
                   <Package className="h-6 w-6 mr-2 text-blue-600" />
                   Shipment Details
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -312,8 +356,12 @@ const ShipmentCreation: React.FC = () => {
                         onChange={handleChange}
                         className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="standard">Standard (3-5 days) - $15</option>
-                        <option value="express">Express (1-2 days) - $25</option>
+                        <option value="standard">
+                          Standard (3-5 days) - $15
+                        </option>
+                        <option value="express">
+                          Express (1-2 days) - $25
+                        </option>
                         <option value="overnight">Overnight - $45</option>
                       </select>
                     </div>
@@ -360,52 +408,95 @@ const ShipmentCreation: React.FC = () => {
                   <CheckCircle className="h-6 w-6 mr-2 text-blue-600" />
                   Review & Confirm
                 </h2>
-                
+
                 <div className="space-y-6">
                   {/* Sender Information */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-3">From (Sender)</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">
+                      From (Sender)
+                    </h3>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p><strong>Name:</strong> {formData.senderName}</p>
-                      <p><strong>Email:</strong> {formData.senderEmail}</p>
-                      <p><strong>Phone:</strong> {formData.senderPhone}</p>
-                      <p><strong>Address:</strong> {formData.senderAddress}</p>
+                      <p>
+                        <strong>Name:</strong> {formData.senderName}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {formData.senderEmail}
+                      </p>
+                      <p>
+                        <strong>Phone:</strong> {formData.senderPhone}
+                      </p>
+                      <p>
+                        <strong>Address:</strong> {formData.senderAddress}
+                      </p>
                     </div>
                   </div>
 
                   {/* Recipient Information */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-3">To (Recipient)</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">
+                      To (Recipient)
+                    </h3>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p><strong>Name:</strong> {formData.recipientName}</p>
-                      <p><strong>Email:</strong> {formData.recipientEmail}</p>
-                      <p><strong>Phone:</strong> {formData.recipientPhone}</p>
-                      <p><strong>Address:</strong> {formData.recipientAddress}, {formData.recipientCity} {formData.recipientPostalCode}</p>
+                      <p>
+                        <strong>Name:</strong> {formData.recipientName}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {formData.recipientEmail}
+                      </p>
+                      <p>
+                        <strong>Phone:</strong> {formData.recipientPhone}
+                      </p>
+                      <p>
+                        <strong>Address:</strong> {formData.recipientAddress},{" "}
+                        {formData.recipientCity} {formData.recipientPostalCode}
+                      </p>
                     </div>
                   </div>
 
                   {/* Shipment Details */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-3">Shipment Details</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">
+                      Shipment Details
+                    </h3>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p><strong>Description:</strong> {formData.packageDescription}</p>
-                      <p><strong>Weight:</strong> {formData.weight} kg</p>
-                      {formData.dimensions && <p><strong>Dimensions:</strong> {formData.dimensions} cm</p>}
-                      <p><strong>Delivery Type:</strong> {formData.deliveryType.charAt(0).toUpperCase() + formData.deliveryType.slice(1)}</p>
-                      {formData.specialInstructions && <p><strong>Special Instructions:</strong> {formData.specialInstructions}</p>}
+                      <p>
+                        <strong>Description:</strong>{" "}
+                        {formData.packageDescription}
+                      </p>
+                      <p>
+                        <strong>Weight:</strong> {formData.weight} kg
+                      </p>
+                      {formData.dimensions && (
+                        <p>
+                          <strong>Dimensions:</strong> {formData.dimensions} cm
+                        </p>
+                      )}
+                      <p>
+                        <strong>Delivery Type:</strong>{" "}
+                        {formData.deliveryType.charAt(0).toUpperCase() +
+                          formData.deliveryType.slice(1)}
+                      </p>
+                      {formData.specialInstructions && (
+                        <p>
+                          <strong>Special Instructions:</strong>{" "}
+                          {formData.specialInstructions}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   {/* Cost Summary */}
                   <div className="bg-blue-50 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-3">Cost Summary</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">
+                      Cost Summary
+                    </h3>
                     <div className="text-sm text-gray-600 space-y-1">
                       <div className="flex justify-between">
                         <span>Delivery Fee:</span>
                         <span>
-                          {formData.deliveryType === 'standard' && '$15.00'}
-                          {formData.deliveryType === 'express' && '$25.00'}
-                          {formData.deliveryType === 'overnight' && '$45.00'}
+                          {formData.deliveryType === "standard" && "$15.00"}
+                          {formData.deliveryType === "express" && "$25.00"}
+                          {formData.deliveryType === "overnight" && "$45.00"}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -415,9 +506,9 @@ const ShipmentCreation: React.FC = () => {
                       <div className="border-t border-gray-300 pt-2 flex justify-between font-medium text-gray-900">
                         <span>Total:</span>
                         <span>
-                          {formData.deliveryType === 'standard' && '$20.00'}
-                          {formData.deliveryType === 'express' && '$30.00'}
-                          {formData.deliveryType === 'overnight' && '$50.00'}
+                          {formData.deliveryType === "standard" && "$20.00"}
+                          {formData.deliveryType === "express" && "$30.00"}
+                          {formData.deliveryType === "overnight" && "$50.00"}
                         </span>
                       </div>
                     </div>
@@ -447,5 +538,3 @@ const ShipmentCreation: React.FC = () => {
     </div>
   );
 };
-
-export default ShipmentCreation;

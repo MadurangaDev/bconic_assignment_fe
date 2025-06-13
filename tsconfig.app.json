@@ -18,7 +18,33 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path Alias */
+    "baseUrl": "./src",
+    "paths": {
+      "@assets/*": ["assets/*"],
+      "@images/*": ["assets/images/*"],
+      "@components": ["components/index.ts"],
+      "@components/*": ["components/*"],
+      "@atoms": ["components/atoms/index.ts"],
+      "@layouts": ["components/layouts/index.ts"],
+      "@configs": ["configs/index.ts"],
+      "@data": ["data/index.ts"],
+      "@hooks": ["hooks/index.ts"],
+      "@pages": ["pages/index.ts"],
+      "@providers": ["providers/index.ts"],
+      "@redux/*": ["redux/*"],
+      "@redux-slices": ["redux/slices/index.ts"],
+      "@redux-actions": ["redux/actions/index.ts"],
+      "@typings/*": ["typings/*"],
+      "@enums": ["typings/enums/index.ts"],
+      "@interfaces": ["typings/interfaces/index.ts"],
+      "@responses": ["typings/interfaces/responses/index.ts"],
+      "@requests": ["typings/interfaces/requests/index.ts"],
+      "@utils": ["utils/index.ts"],
+      "@services": ["services/index.ts"]
+    }
   },
   "include": ["src"]
 }
