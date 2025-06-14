@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import {
   getAllShipmentsAction,
   getShipmentHistoryAction,
+  updateShipmentAction,
 } from "@redux-actions";
 import { IShipmentHistoryResponse, IShipmentResponse } from "@responses";
 
@@ -14,6 +15,10 @@ interface IShipmentSlice {
   allShipmentsResponse: IShipmentResponse[] | null;
   allShipmentsError: string | null;
   allShipmentsLoading: boolean;
+
+  updateShipmentResponse: IShipmentResponse | null;
+  updateShipmentLoading: boolean;
+  updateShipmentError: string | null;
 }
 
 const initialState: IShipmentSlice = {
@@ -24,6 +29,10 @@ const initialState: IShipmentSlice = {
   allShipmentsResponse: null,
   allShipmentsError: null,
   allShipmentsLoading: false,
+
+  updateShipmentError: null,
+  updateShipmentLoading: false,
+  updateShipmentResponse: null,
 };
 
 const slice = createSlice({
@@ -65,6 +74,24 @@ const slice = createSlice({
         state.allShipmentsError =
           action.error.message || "Error while fetching all shipments";
         state.allShipmentsLoading = false;
+      });
+
+    builder
+      .addCase(updateShipmentAction.pending, (state) => {
+        state.updateShipmentError = null;
+        state.updateShipmentLoading = true;
+        state.updateShipmentResponse = null;
+      })
+      .addCase(updateShipmentAction.fulfilled, (state, action) => {
+        state.updateShipmentResponse = action.payload;
+        state.updateShipmentError = null;
+        state.updateShipmentLoading = false;
+      })
+      .addCase(updateShipmentAction.rejected, (state, action) => {
+        state.updateShipmentResponse = null;
+        state.updateShipmentError =
+          action.error.message || "Error while updating shipment status";
+        state.updateShipmentLoading = false;
       });
   },
 });

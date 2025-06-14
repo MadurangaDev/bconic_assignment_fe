@@ -16,7 +16,7 @@ import { useSnackbarContext } from "@providers";
 import { TrackingStatus } from "@typings/enums";
 import { getOverallStatusColor, getStatusIcon } from "@utils";
 
-type Shipment = {
+type IShipment = {
   id: number;
   recipient: string;
   address: string;
@@ -31,7 +31,7 @@ export const UserDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<TrackingStatus | "all">(
     "all"
   );
-  const [fetchedShipments, setFetchedShipments] = useState<Shipment[]>([]);
+  const [fetchedShipments, setFetchedShipments] = useState<IShipment[]>([]);
 
   const dispatch = useAppDispatch();
   const snackbar = useSnackbarContext();

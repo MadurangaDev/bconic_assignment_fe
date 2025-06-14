@@ -1,7 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
 
-import { ALL_SHIPMENTS_ENDPOINT, TRACK_ENDPOINT } from "@configs";
+import {
+  ALL_SHIPMENTS_ENDPOINT,
+  TRACK_ENDPOINT,
+  UPDATE_SHIPMENT_ENDPOINT,
+} from "@configs";
 import {
   baseResponse,
   baseResponseArray,
@@ -9,6 +12,7 @@ import {
   IShipmentResponse,
 } from "@responses";
 import { axiosInstance } from "@utils";
+import { TrackingStatus } from "@enums";
 
 export const getShipmentHistoryAction = createAsyncThunk(
   "shipment/getHistory",
@@ -43,6 +47,37 @@ export const getAllShipmentsAction = createAsyncThunk(
         return response.data.body;
       } else {
         return rejectWithValue("No shipments data returned");
+      }
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Error while fetching all shipments"
+      );
+    }
+  }
+);
+
+export const updateShipmentAction = createAsyncThunk(
+  "shipment/update",
+  async (
+    data: {
+      shipmentId: number;
+      paymentStatus: boolean;
+      currentStatus: TrackingStatus;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const { shipmentId, ...newData } = data;
+      const res = await axiosInstance.patch<baseResponse<IShipmentResponse>>(
+        UPDATE_SHIPMENT_ENDPOINT(shipmentId),
+        newData
+      );
+      if (res.data.body) {
+        return res.data.body;
+      } else {
+        return rejectWithValue("Failed to update shipment, no data returned");
       }
     } catch (error: any) {
       return rejectWithValue(

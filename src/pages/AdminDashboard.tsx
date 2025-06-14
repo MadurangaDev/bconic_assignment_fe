@@ -1,11 +1,9 @@
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import {
   Search,
-  Filter,
   Edit,
   Eye,
   Package,
-  Users,
   TrendingUp,
   AlertTriangle,
   CheckCircle,
@@ -13,148 +11,117 @@ import {
   Truck,
 } from "lucide-react";
 
+import { TrackingStatus } from "@enums";
+import { useAppDispatch, useAppSelector } from "@hooks";
+import { useSnackbarContext } from "@providers";
+import { getAllShipmentsAction } from "@redux-actions";
+import { getOverallStatusColor, getStatusIcon } from "@utils";
+import { UpdateTrackingStatusModal } from "@components";
+
+type IShipment = {
+  id: number;
+  sender: string;
+  senderPhone: string;
+  recipient: string;
+  recipientEmail: string;
+  address: string;
+  status: TrackingStatus;
+  createdAt: Date;
+  weight: number;
+  type: string;
+  cost: number;
+  description: string;
+  updatedAt: Date;
+};
+
 export const AdminDashboard: FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedShipment, setSelectedShipment] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<TrackingStatus | "all">(
+    "all"
+  );
+  const [selectedShipment, setSelectedShipment] = useState<IShipment | null>(
+    null
+  );
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [fetchedShipments, setFetchedShipments] = useState<IShipment[]>([]);
 
-  // Mock admin data
-  const mockShipments = [
-    {
-      id: "HL001234",
-      sender: "John Doe",
-      senderEmail: "john.doe@email.com",
-      recipient: "Alice Johnson",
-      recipientEmail: "alice.johnson@email.com",
-      address: "123 Main St, New York, NY",
-      status: "delivered",
-      createdAt: "2024-01-15",
-      estimatedDelivery: "2024-01-17",
-      actualDelivery: "2024-01-17",
-      weight: "2.5 kg",
-      type: "Standard",
-      cost: "$20.00",
-      description: "Electronics - Laptop accessories",
-    },
-    {
-      id: "HL001235",
-      sender: "John Doe",
-      senderEmail: "john.doe@email.com",
-      recipient: "Bob Smith",
-      recipientEmail: "bob.smith@email.com",
-      address: "456 Oak Ave, Los Angeles, CA",
-      status: "in_transit",
-      createdAt: "2024-01-16",
-      estimatedDelivery: "2024-01-18",
-      weight: "1.2 kg",
-      type: "Express",
-      cost: "$30.00",
-      description: "Documents - Legal papers",
-    },
-    {
-      id: "HL001236",
-      sender: "Jane Smith",
-      senderEmail: "jane.smith@email.com",
-      recipient: "Carol Wilson",
-      recipientEmail: "carol.wilson@email.com",
-      address: "789 Pine St, Chicago, IL",
-      status: "pending",
-      createdAt: "2024-01-17",
-      estimatedDelivery: "2024-01-19",
-      weight: "3.1 kg",
-      type: "Standard",
-      cost: "$20.00",
-      description: "Books and documents",
-    },
-    {
-      id: "HL001237",
-      sender: "Mike Johnson",
-      senderEmail: "mike.johnson@email.com",
-      recipient: "David Brown",
-      recipientEmail: "david.brown@email.com",
-      address: "321 Elm St, Houston, TX",
-      status: "processing",
-      createdAt: "2024-01-17",
-      estimatedDelivery: "2024-01-20",
-      weight: "0.8 kg",
-      type: "Express",
-      cost: "$30.00",
-      description: "Medical supplies",
-    },
-    {
-      id: "HL001238",
-      sender: "Sarah Davis",
-      senderEmail: "sarah.davis@email.com",
-      recipient: "Emily Wilson",
-      recipientEmail: "emily.wilson@email.com",
-      address: "555 Maple Ave, Phoenix, AZ",
-      status: "delayed",
-      createdAt: "2024-01-16",
-      estimatedDelivery: "2024-01-18",
-      weight: "4.2 kg",
-      type: "Standard",
-      cost: "$20.00",
-      description: "Clothing and accessories",
-    },
-  ];
+  const dispatch = useAppDispatch();
+  const snackbar = useSnackbarContext();
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "delivered":
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case "in_transit":
-        return <Truck className="h-5 w-5 text-blue-600" />;
-      case "processing":
-        return <Clock className="h-5 w-5 text-yellow-600" />;
-      case "delayed":
-        return <AlertTriangle className="h-5 w-5 text-red-600" />;
-      default:
-        return <Package className="h-5 w-5 text-gray-600" />;
+  const { allShipmentsLoading, allShipmentsResponse } = useAppSelector(
+    (state) => state.shipment
+  );
+  const { user, token } = useAppSelector((state) => state.auth);
+
+  const fetchShipments = async () => {
+    try {
+      await dispatch(getAllShipmentsAction()).unwrap();
+    } catch (error: string | any) {
+      snackbar.showSnackbar(error || "Failed to fetch shipment data.", "error");
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "delivered":
-        return "bg-green-100 text-green-800";
-      case "in_transit":
-        return "bg-blue-100 text-blue-800";
-      case "processing":
-        return "bg-yellow-100 text-yellow-800";
-      case "delayed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  useEffect(() => {
+    if (allShipmentsResponse) {
+      setFetchedShipments(
+        allShipmentsResponse.map((shipment) => ({
+          id: shipment.id,
+          recipient: shipment.recipientName,
+          address: shipment.recipientAddress,
+          status: shipment.currentStatus,
+          createdAt: new Date(shipment.createdAt),
+          weight: shipment.weight,
+          type: shipment.paymentStatus ? "Paid" : "Cash on Delivery",
+          sender: shipment.senderName,
+          senderPhone: shipment.senderPhone,
+          recipientEmail: shipment.recipientEmail,
+          cost: shipment.deliveryCharge,
+          description: shipment.packageDescription || "No description provided",
+          updatedAt: new Date(shipment.updatedAt),
+        }))
+      );
     }
-  };
+  }, [allShipmentsResponse]);
 
-  const handleStatusUpdate = (shipmentId: string, newStatus: string) => {
-    // Mock status update - in real app, this would make an API call
-    console.log(`Updating shipment ${shipmentId} to status: ${newStatus}`);
-    setIsModalOpen(false);
-  };
+  useEffect(() => {
+    if (user && token) fetchShipments();
+  }, [user, token]);
 
-  const filteredShipments = mockShipments.filter((shipment) => {
+  const filteredShipments = fetchedShipments.filter((shipment) => {
     const matchesSearch =
-      shipment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.sender.toLowerCase().includes(searchTerm.toLowerCase());
+      shipment.id
+        .toString()
+        .padStart(6, "0")
+        .includes(searchTerm.toLowerCase()) ||
+      shipment.recipient.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || shipment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const stats = {
-    totalShipments: mockShipments.length,
-    delivered: mockShipments.filter((s) => s.status === "delivered").length,
-    inTransit: mockShipments.filter((s) => s.status === "in_transit").length,
-    delayed: mockShipments.filter((s) => s.status === "delayed").length,
-    totalRevenue: mockShipments.reduce(
-      (sum, s) => sum + parseFloat(s.cost.replace("$", "")),
-      0
-    ),
+    total: fetchedShipments.length,
+    delivered: fetchedShipments.filter(
+      (s) => s.status === TrackingStatus.DELIVERED
+    ).length,
+    inTransit: fetchedShipments.filter(
+      (s) =>
+        s.status === TrackingStatus.IN_TRANSIT ||
+        s.status === TrackingStatus.OUT_FOR_DELIVERY ||
+        s.status === TrackingStatus.PICKED_UP
+    ).length,
+    delayed: fetchedShipments.filter(
+      (s) =>
+        (s.status == TrackingStatus.PENDING_PICKUP ||
+          s.status == TrackingStatus.PICKED_UP ||
+          s.status == TrackingStatus.IN_TRANSIT) &&
+        s.updatedAt.getTime() - s.createdAt.getTime() > 3 * 24 * 60 * 60 * 1000
+    ).length,
   };
+  const totalRevenue = fetchedShipments.reduce(
+    (acc, shipment) => acc + (shipment.type == "Paid" ? shipment.cost : 0),
+    0
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 pb-24">
@@ -179,7 +146,7 @@ export const AdminDashboard: FC = () => {
                   Total Shipments
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalShipments}
+                  {stats.total}
                 </p>
               </div>
             </div>
@@ -235,7 +202,7 @@ export const AdminDashboard: FC = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Revenue</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${stats.totalRevenue}
+                  ${totalRevenue}
                 </p>
               </div>
             </div>
@@ -266,15 +233,21 @@ export const AdminDashboard: FC = () => {
 
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) =>
+                    setStatusFilter(e.target.value as TrackingStatus | "all")
+                  }
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="in_transit">In Transit</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="delayed">Delayed</option>
+                  <option value={TrackingStatus.PENDING_PICKUP}>Pending</option>
+                  <option value={TrackingStatus.PICKED_UP}>Picked up</option>
+                  <option value={TrackingStatus.IN_TRANSIT}>In Transit</option>
+                  <option value={TrackingStatus.OUT_FOR_DELIVERY}>
+                    Out for Delivery
+                  </option>
+                  <option value={TrackingStatus.DELIVERED}>Delivered</option>
+                  <option value={TrackingStatus.CANCELLED}>Cancelled</option>
+                  <option value={TrackingStatus.RETURNED}>Returned</option>
                 </select>
               </div>
             </div>
@@ -318,7 +291,7 @@ export const AdminDashboard: FC = () => {
                   <tr key={shipment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {shipment.id}
+                        {shipment.id.toString().padStart(6, "0")}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -326,7 +299,7 @@ export const AdminDashboard: FC = () => {
                         {shipment.sender}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {shipment.senderEmail}
+                        {shipment.senderPhone}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -344,9 +317,9 @@ export const AdminDashboard: FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {getStatusIcon(shipment.status)}
+                        {getStatusIcon(shipment.status, true)}
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getStatusColor(
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getOverallStatusColor(
                             shipment.status
                           )}`}
                         >
@@ -365,12 +338,16 @@ export const AdminDashboard: FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {shipment.cost}
+                        {shipment.cost} LKR
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {shipment.createdAt}
+                        {shipment.createdAt.toLocaleString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -388,7 +365,9 @@ export const AdminDashboard: FC = () => {
                         <button
                           onClick={() =>
                             window.open(
-                              `/shipment/track/${shipment.id}`,
+                              `/shipment/track/${shipment.id
+                                .toString()
+                                .padStart(6, "0")}`,
                               "_blank"
                             )
                           }
@@ -405,71 +384,33 @@ export const AdminDashboard: FC = () => {
             </table>
           </div>
 
-          {filteredShipments.length === 0 && (
+          {!allShipmentsLoading && filteredShipments.length === 0 && (
             <div className="text-center py-12">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">No shipments found</p>
             </div>
           )}
+
+          {allShipmentsLoading && (
+            <div className="text-center py-12">
+              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-500">Loading shipments...</p>
+            </div>
+          )}
         </div>
 
         {/* Status Update Modal */}
-        {isModalOpen && selectedShipment && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Update Status - {selectedShipment.id}
-              </h3>
-
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">Current Status:</p>
-                <div className="flex items-center">
-                  {getStatusIcon(selectedShipment.status)}
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getStatusColor(
-                      selectedShipment.status
-                    )}`}
-                  >
-                    {selectedShipment.status
-                      .replace("_", " ")
-                      .charAt(0)
-                      .toUpperCase() +
-                      selectedShipment.status.replace("_", " ").slice(1)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Update to:
-                </label>
-                <select className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="in_transit">In Transit</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="delayed">Delayed</option>
-                </select>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() =>
-                    handleStatusUpdate(selectedShipment.id, "processing")
-                  }
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                >
-                  Update Status
-                </button>
-              </div>
-            </div>
-          </div>
+        {selectedShipment && (
+          <UpdateTrackingStatusModal
+            isOpen={isModalOpen}
+            shipmentId={selectedShipment.id}
+            currentStatus={selectedShipment.status}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedShipment(null);
+            }}
+            currentPaymentStatus={selectedShipment.type == "Paid"}
+          />
         )}
       </div>
     </div>

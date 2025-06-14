@@ -8,3 +8,5 @@ export const REGISTER_ENDPOINT = `${BASE_URL}/auth/register`;
 export const TRACK_ENDPOINT = (shipmentId: number) =>
   `${BASE_URL}/shipments/${shipmentId}/history`;
 export const ALL_SHIPMENTS_ENDPOINT = `${BASE_URL}/shipments`;
+export const UPDATE_SHIPMENT_ENDPOINT = (shipmentId: number) =>
+  `${BASE_URL}/shipments/${shipmentId}`;
