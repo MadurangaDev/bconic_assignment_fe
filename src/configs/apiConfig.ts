@@ -10,3 +10,5 @@ export const TRACK_ENDPOINT = (shipmentId: number) =>
 export const ALL_SHIPMENTS_ENDPOINT = `${BASE_URL}/shipments`;
 export const UPDATE_SHIPMENT_ENDPOINT = (shipmentId: number) =>
   `${BASE_URL}/shipments/${shipmentId}`;
+export const CREATE_SHIPMENT_ENDPOINT = ALL_SHIPMENTS_ENDPOINT;
+export const CALCULATE_SHIPPING_COST_ENDPOINT = `${BASE_URL}/shipments//calculate-fee`;

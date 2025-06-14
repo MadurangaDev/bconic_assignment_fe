@@ -2,17 +2,24 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import {
   ALL_SHIPMENTS_ENDPOINT,
+  CALCULATE_SHIPPING_COST_ENDPOINT,
+  CREATE_SHIPMENT_ENDPOINT,
   TRACK_ENDPOINT,
   UPDATE_SHIPMENT_ENDPOINT,
 } from "@configs";
 import {
   baseResponse,
   baseResponseArray,
+  ICalculateFeeResponse,
   IShipmentHistoryResponse,
   IShipmentResponse,
 } from "@responses";
 import { axiosInstance } from "@utils";
 import { TrackingStatus } from "@enums";
+import {
+  ICalcualteFeeRequest,
+  ICreateShipmentRequest,
+} from "@typings/interfaces/requests";
 
 export const getShipmentHistoryAction = createAsyncThunk(
   "shipment/getHistory",
@@ -84,6 +91,48 @@ export const updateShipmentAction = createAsyncThunk(
         error.response?.data?.message ||
           error.message ||
           "Error while fetching all shipments"
+      );
+    }
+  }
+);
+export const calculateShippingFeeAction = createAsyncThunk(
+  "shipment/calculate-fee",
+  async (data: ICalcualteFeeRequest, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.post<baseResponse<ICalculateFeeResponse>>(
+        CALCULATE_SHIPPING_COST_ENDPOINT,
+        data
+      );
+      if (res.data.body) {
+        return res.data.body;
+      }
+      return rejectWithValue("No data returned from fee calculation");
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message ||
+          err.message ||
+          "Error while calculating shipping fee"
+      );
+    }
+  }
+);
+export const createShipmentAction = createAsyncThunk(
+  "shipment/create",
+  async (data: ICreateShipmentRequest, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.post<baseResponse<IShipmentResponse>>(
+        CREATE_SHIPMENT_ENDPOINT,
+        data
+      );
+      if (res.data.body) {
+        return res.data.body;
+      }
+      return rejectWithValue("No data returned from shipment creation");
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message ||
+          err.message ||
+          "Error while creating shipment"
       );
     }
   }

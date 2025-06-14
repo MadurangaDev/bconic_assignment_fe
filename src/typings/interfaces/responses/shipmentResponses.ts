@@ -36,3 +36,7 @@ export interface IHistoryRecord {
 export interface IShipmentHistoryResponse extends IShipmentResponse {
   trackingHistory: IHistoryRecord[];
 }
+
+export interface ICalculateFeeResponse {
+  deliveryFee: number;
+}

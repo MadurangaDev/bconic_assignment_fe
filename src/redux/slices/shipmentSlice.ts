@@ -1,11 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 import {
+  calculateShippingFeeAction,
   getAllShipmentsAction,
   getShipmentHistoryAction,
   updateShipmentAction,
 } from "@redux-actions";
-import { IShipmentHistoryResponse, IShipmentResponse } from "@responses";
+import {
+  ICalculateFeeResponse,
+  IShipmentHistoryResponse,
+  IShipmentResponse,
+} from "@responses";
 
 interface IShipmentSlice {
   trackingResponse: IShipmentHistoryResponse | null;
@@ -19,6 +24,10 @@ interface IShipmentSlice {
   updateShipmentResponse: IShipmentResponse | null;
   updateShipmentLoading: boolean;
   updateShipmentError: string | null;
+
+  calculateFeeResponse: ICalculateFeeResponse | null;
+  calculateFeeLoading: boolean;
+  calculateFeeError: string | null;
 }
 
 const initialState: IShipmentSlice = {
@@ -33,6 +42,10 @@ const initialState: IShipmentSlice = {
   updateShipmentError: null,
   updateShipmentLoading: false,
   updateShipmentResponse: null,
+
+  calculateFeeError: null,
+  calculateFeeLoading: false,
+  calculateFeeResponse: null,
 };
 
 const slice = createSlice({
@@ -92,6 +105,24 @@ const slice = createSlice({
         state.updateShipmentError =
           action.error.message || "Error while updating shipment status";
         state.updateShipmentLoading = false;
+      });
+
+    builder
+      .addCase(calculateShippingFeeAction.pending, (state) => {
+        state.calculateFeeError = null;
+        state.calculateFeeLoading = true;
+        state.calculateFeeResponse = null;
+      })
+      .addCase(calculateShippingFeeAction.fulfilled, (state, action) => {
+        state.calculateFeeResponse = action.payload;
+        state.calculateFeeError = null;
+        state.calculateFeeLoading = false;
+      })
+      .addCase(calculateShippingFeeAction.rejected, (state, action) => {
+        state.calculateFeeResponse = null;
+        state.calculateFeeError =
+          action.error.message || "Error while calculating shipping fee";
+        state.calculateFeeLoading = false;
       });
   },
 });
