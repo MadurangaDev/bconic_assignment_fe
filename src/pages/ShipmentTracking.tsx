@@ -39,13 +39,14 @@ export const ShipmentTracking: FC = () => {
       snackbar.showSnackbar("Please enter a valid tracking number.", "error");
       return;
     }
-    if (!/^\d{6}$/.test(searchingId)) {
+    if (isNaN(Number(searchingId)) || Number(searchingId) <= 0) {
       snackbar.showSnackbar(
         "Invalid tracking number format. Please use the format 001234.",
         "error"
       );
       return;
     }
+    setShipmentId(Number(searchingId).toString().padStart(6, "0"));
     try {
       const res = await dispatch(
         getShipmentHistoryAction(Number(searchingId))
@@ -62,7 +63,7 @@ export const ShipmentTracking: FC = () => {
       snackbar.showSnackbar("Please enter a valid tracking number.", "error");
       return;
     }
-    if (!/^\d{6}$/.test(shipmentId)) {
+    if (isNaN(Number(shipmentId)) || Number(shipmentId) <= 0) {
       snackbar.showSnackbar(
         "Invalid tracking number format. Please use the format 001234.",
         "error"
